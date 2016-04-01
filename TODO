@@ -1,0 +1,7 @@
+* Sanitize setup.py
+  - Structure requirements
+  - Add a MANIFEST.in file
+* Create examples
+* Configure tox
+* Configure travis
+* Extend docs
