@@ -1,5 +1,6 @@
 import os
 import re
+from sys import version_info
 from setuptools import setup, find_packages
 
 
@@ -28,6 +29,9 @@ def list_requirements():
 
 requires = list_requirements()
 
+if version_info[:2] < (2, 7):
+    requires['default'] += requires['py2.6']
+
 setup(
     name='cuckoos',
     version=get_version('cuckoos'),
@@ -39,8 +43,8 @@ setup(
     license='BSD',
     packages=find_packages(exclude=['tests', 'tests.*']),
     include_package_data=False,
-    install_requires=requires['default'],
-    tests_require=requires['test'],
+    install_requires=requires.pop('default'),
+    extras_require=requires,
     test_suite='tests',
     keywords=['python', 'meta', 'class', 'namespace'],
     classifiers=[
