@@ -1,6 +1,6 @@
 from __future__ import unicode_literals, absolute_import
 
-from six import iteritems
+from six import iteritems, callable
 from inspect import isfunction
 from functools import update_wrapper
 from .flock import flock, get_context
@@ -59,6 +59,54 @@ def fledge(method):
     return wrapped_method
 
 
+def consolidated(schema):
+    """
+    Walk through the schema and merge list into dictionaries following a simple
+    rule. If a member of the list is not a dictianary but a callable, we create
+    a new dictionary {'__call__': value}. If a value is neither callable or
+    a dictionary, we have a deeper problem so we fail.
+
+    e.g.:
+    ```
+    schema = {
+        'land': [
+            <function Object.land at 0x7ff3ff119bf8>,
+            {'realm': <function Object.land__realm at 0x7ff3ff119840>}
+            {'realm':
+                {'act': <function Object.land__realm__act at 0x7f21a16c3a60>}
+            }
+        ]
+    }
+    consolidated(schema)
+    {
+        'land': [
+            {'__call__': <function Object.land at 0x7ff3ff119bf8>},
+            {'realm':
+                {
+                    '__call__': <function Object.land__realm at 0x7ff3ff119840>,
+                    'act': <function Object.land__realm__act at 0x7f21a16c3a60>
+                }
+            }
+        ]
+    }
+    """
+    if not isinstance(schema, dict):
+        return schema
+
+    consolidated_schema = {}
+    for key, value in iteritems(schema):
+        if isinstance(value, list):
+            value_dict = {}
+            for element in value:
+                if callable(element):
+                    element = {'__call__': element}
+                value_dict = merge(value_dict, element)
+            consolidated_schema[key] = consolidated(value_dict)
+        else:
+            consolidated_schema[key] = consolidated(value)
+    return consolidated_schema
+
+
 class NestedObjectType(type):
     """The nested object type looks up for method and creates nested methods if
     necessary. Method hierarchy is represented in code using the
@@ -112,9 +160,9 @@ class NestedObjectType(type):
             else:
                 if isfunction(reference):
                     reference = fledge(reference)
-                structure = partition(method_name, {'__call__': reference})
+                structure = partition(method_name, reference)
             schema = merge(schema, structure)
-        for key, value in iteritems(schema):
+        for key, value in iteritems(consolidated(schema)):
             if isinstance(value, (dict, )):
                 schema[key] = flock(value)
             else:

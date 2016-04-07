@@ -19,7 +19,8 @@ class TestPack:
 
     def test_flock_flat_method(self):
         obj = flock({'one': self.func})
-        assert callable(obj.one)
+        assert six.callable(obj.one)
+        assert isinstance(obj.one, type(self.func))
         assert obj.one() == 1
 
     def test_flock_nested_attributes(self):
@@ -29,8 +30,14 @@ class TestPack:
 
     def test_flock_nested_methods(self):
         obj = flock({'one': {'two': {'three': self.func}}})
-        assert callable(obj.one.two.three)
+        assert six.callable(obj.one.two.three)
+        assert isinstance(obj.one.two.three, type(obj.one.two.three))
         assert obj.one.two.three() == 1
+
+    def test_flock_nested_object(self):
+        Class = type(str('Class'), (object,), {})
+        obj = flock({'attr': Class()})
+        assert isinstance(obj.attr, Class)
 
     def test_flock_unflock(self):
         definition = {'one': {'two': {'three': self.func}}}
@@ -55,10 +62,10 @@ class TestContext:
     def test_context_random_object(self):
         flocker = TestContext()
         assert get_context(flocker) == flocker
-        assert get_context('str') == None
-        assert get_context(1) == None
+        assert get_context('str') is None
+        assert get_context(1) is None
 
     def test_context_collections(self):
-        assert get_context([1, 2, 3, 4]) == None
-        assert get_context((1, 2, 3,)) == None
-        assert get_context({1: 2}) == None
+        assert get_context([1, 2, 3, 4]) is None
+        assert get_context((1, 2, 3,)) is None
+        assert get_context({1: 2}) is None

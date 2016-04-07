@@ -1,19 +1,11 @@
 from __future__ import unicode_literals
 
-import sys
-from six import PY3
-if PY3:
-    from io import StringIO
-else:
-    from cStringIO import StringIO
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
 
-from toolbelt.collections import (
-    merge, listify, extend, partition, pprint
-)
+from cuckoos.utils import merge, listify, extend, partition
 
 
 class TestUtils:

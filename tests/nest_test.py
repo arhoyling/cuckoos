@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 import pytest
+import six
+
 from cuckoos import Nest
 
 
@@ -50,14 +52,23 @@ class TestNestedObjectType:
         assert not hasattr(self.object, 'nested__method')
         assert not hasattr(self.object, 'nested__deeper__method')
 
+    def test_attributes_type(self):
+        assert isinstance(self.object.method, six.types.MethodType)
+        assert isinstance(self.object.nested, object)
+        assert isinstance(self.object.nested.method, six.types.MethodType)
+        assert isinstance(self.object.nested.deeper, object)
+        assert isinstance(self.object.nested.deeper.method, six.types.MethodType)
+        assert isinstance(self.object.branch, object)
+        assert isinstance(self.object.attribute, dict)
+
     def test_valid_method_access(self):
-        assert callable(self.object.method)
-        assert callable(self.object.top_level_method)
-        assert callable(self.object.nested)
-        assert callable(self.object.nested.method)
-        assert callable(self.object.nested.deeper)
-        assert callable(self.object.nested.deeper.method)
-        assert callable(self.object.branch.method)
+        assert six.callable(self.object.method)
+        assert six.callable(self.object.top_level_method)
+        assert six.callable(self.object.nested)
+        assert six.callable(self.object.nested.method)
+        assert six.callable(self.object.nested.deeper)
+        assert six.callable(self.object.nested.deeper.method)
+        assert six.callable(self.object.branch.method)
 
     def test_invalid_method_access(self):
         with pytest.raises(AttributeError):
@@ -75,15 +86,15 @@ class TestNestedObjectType:
     def test_namespace_dereferencing(self):
         service = self.object.nested
         assert service is self.object.nested
-        assert callable(service)
+        assert six.callable(service)
         assert hasattr(service, 'method')
-        assert callable(service.method)
+        assert six.callable(service.method)
 
         service = self.object.nested.deeper
         assert service is self.object.nested.deeper
-        assert callable(service)
+        assert six.callable(service)
         assert hasattr(service, 'method')
-        assert callable(service.method)
+        assert six.callable(service.method)
 
     def test_dictionary_attribute(self):
         assert self.object.attribute == {'zero': 0}
