@@ -1,0 +1,8 @@
+# Change history
+
+This document contains change notes for the 0.1.x series
+
+## 0.1.2
+
+* **Nest**
+  - Nested methods now preserve their type.
